@@ -92,9 +92,37 @@ const getUserStore = async (userId) => {
   }
 };
 
+const getStoreById = async (storeId) => {
+  const sql = `SELECT 
+                stores.id as "store_id",
+                stores.user_id as "owner_id",
+                stores.store_name,
+                stores.store_desc,
+                stores.store_img,
+                stores.store_url,
+                stores.mobile_no,
+                stores.email,
+                store_categories.name,
+                address.full_address,
+                address.city
+                FROM ebilimoko.stores
+                JOIN ebilimoko.address ON stores.address_id = address.id
+                JOIN ebilimoko.store_categories ON store_categories.id = stores.store_category_id
+                WHERE stores.id = ${storeId}`;
+  let data = [];
+  let result = {};
+  try {
+    result = await dbUtil.sqlToDB(sql, data);
+    return result.rows;
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
 module.exports = {
   getStoreList,
   addStore,
   getUserStore,
   updateStore,
+  getStoreById
 };

@@ -96,6 +96,22 @@ router.get('/search/:keyword?', async (req, res) => {
   }
 });
 
+router.get('/storeId/:storeId', async (req, res) => {
+  try {
+    const storeId = req.params.storeId;
+    const stores = await storesStore.getStoreById(storeId);
+    console.log(stores);
+    const resources = stores.map(storesMapper);
+    res.send(resources);
+    // res.send(result);
+  } catch (error) {
+    logger.error(error);
+    res
+      .status(500)
+      .json({ status: 'error', message: error.message, statusCode: 500 });
+  }
+});
+
 router.get('/user', auth, async (req, res) => {
   try {
     const stores = await storesStore.getUserStore(req.user.userId);

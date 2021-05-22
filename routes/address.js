@@ -115,4 +115,17 @@ router.get('/store/:storeId', auth, async (req, res) => {
   }
 });
 
+router.get('/specific/:userId', auth, async (req, res) => {
+  try {
+    let userId = req.params.userId;
+    let result = await addressStore.getDefaultAddress(userId);
+
+    res.send(result[0]);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ status: 'error', message: error.message, statusCode: 500 });
+  }
+});
+
 module.exports = router;

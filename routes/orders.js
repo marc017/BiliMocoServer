@@ -165,7 +165,7 @@ router.post('/owner/actions', auth, async (req, res) => {
         order = await ordersStore.setOrderForShipping(orderInfo.id);
         break;
       case 'forDelivery':
-        order = await ordersStore.setOrderForDelivery(orderInfo.id);
+        order = await ordersStore.setOrderForDelivery(orderInfo.id, req.user.userId);
         break;
       case 'completed':
         order = await ordersStore.completeOrder(orderInfo.id);
@@ -175,6 +175,7 @@ router.post('/owner/actions', auth, async (req, res) => {
     // const cancelOrder = await ordersStore.cancelOrder(orderInfo.id);
 
     const messageBody = helperOrders.getOrderDisplays(orderInfo.type);
+    const messageBodySeller = helperOrders.getOrderDisplays(orderInfo.type, true);
 
     // create a log
     // ${orderInfo.order_id}, ${orderInfo.user_id}, ${orderInfo.reason},
@@ -184,16 +185,21 @@ router.post('/owner/actions', auth, async (req, res) => {
       reason: orderInfo.reason,
       type: orderInfo.type
     };
-    console.log(logInfo);
+    console.log(req.user);
     const cancelLog = await orderLogs.createLog(logInfo);
     messageBody.body = `[${orderInfo.order_code}]: ${messageBody.body}`;
-    sendPushNotification(req.user.expoPushToken, messageBody);
+    if (req.user.expoPushToken) {
+      sendPushNotification(req.user.expoPushToken, messageBody);
+    }
 
     // get store owner token
+    const storeOwner = await userStore.getUserById(orderInfo.seller_id);
     const customer = await userStore.getUserById(orderInfo.buyer_id);
-    // console.log(storeOwner);
-    sendPushNotification(customer[0].expoPushToken, messageBody);
+    console.log(storeOwner);
     res.send(order);
+    sendPushNotification(customer[0].expoPushToken, messageBody);
+    sendPushNotification(storeOwner[0].expoPushToken, messageBodySeller);
+    
   } catch (error) {
     logger.error(error);
     res
@@ -201,6 +207,7 @@ router.post('/owner/actions', auth, async (req, res) => {
       .json({ status: 'error', message: error.message, statusCode: 500 });
   }
 });
+
 
 const getOrderItems = async (orderId) => {
   let items = await orderItemsStore.getOrderItems(orderId);
@@ -238,6 +245,84 @@ router.get('/', auth, async (req, res) => {
       const items = await getOrderItems(orderList[i].id);
 
       result.push({ ...orderList[i], items: items });
+    }
+
+    res.send(result);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ status: 'error', message: error.message, statusCode: 500 });
+  }
+});
+
+router.get('/', auth, async (req, res) => {
+  try {
+    let orderList = await ordersStore.getOrderListByUser(req.user.userId);
+    orderList = orderList.map(storeMapper);
+    let result = [];
+    for (let i = 0; i < orderList.length; i++) {
+      // const store = orderList[i].map(storeMapper);
+      const items = await getOrderItems(orderList[i].id);
+      result.push({ ...orderList[i], items: items });
+    }
+
+    res.send(result);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ status: 'error', message: error.message, statusCode: 500 });
+  }
+});
+
+// router.get('/pending/city/:cityName', auth, async (req, res) => {
+//   try {
+//     const cityName = req.params.cityName;
+//     if (!cityName) {
+//       res
+//       .status(500)
+//       .json({ status: 'error', message: 'Undefined parameter for City Name', statusCode: 500 });
+//     }
+//     console.log('cityName', cityName);
+//     let orderList = await ordersStore.getPendingOrdersByCity(req.user.userId, cityName);
+//     orderList = orderList.map(storeMapper);
+//     let result = [];
+//     for (let i = 0; i < orderList.length; i++) {
+//       // const store = orderList[i].map(storeMapper);
+//       const items = await getOrderItems(orderList[i].id);
+//       if (items) {
+//         console.log('items =>', items);
+//         result.push({ ...orderList[i], items: items });
+//       }
+//     }
+
+//     res.send(result);
+//   } catch (error) {
+//     res
+//       .status(500)
+//       .json({ status: 'error', message: error.message, statusCode: 500 });
+//   }
+// });
+
+router.get('/byCity/:cityName', auth, async (req, res) => {
+  try {
+    
+    const cityName = req.params.cityName;
+    if (!cityName) {
+      res
+      .status(500)
+      .json({ status: 'error', message: 'Undefined parameter for City Name', statusCode: 500 });
+    }
+    console.log('cityName', cityName);
+    let orderList = await ordersStore.getOrdersByCity(req.user.userId, cityName);
+    orderList = orderList.map(storeMapper);
+    let result = [];
+    for (let i = 0; i < orderList.length; i++) {
+      // const store = orderList[i].map(storeMapper);
+      const items = await getOrderItems(orderList[i].id);
+      if (items) {
+        console.log('items =>', items);
+        result.push({ ...orderList[i], items: items });
+      }
     }
 
     res.send(result);
