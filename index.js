@@ -48,6 +48,10 @@ app.use('/api/shoppingCartItems', shoppingCartItems);
 app.use('/api/orders', orders);
 app.use('/api/deliveryRates', deliveryRates);
 
+app.get('/', (req, res) => {
+  res.send('Welcome');
+});
+
 const port = process.env.PORT || config.get('port');
 app.listen(port, function () {
   console.log(`Server started on port ${port}...`);
