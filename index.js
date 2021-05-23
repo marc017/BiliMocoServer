@@ -49,7 +49,7 @@ app.use('/api/orders', orders);
 app.use('/api/deliveryRates', deliveryRates);
 
 app.get('/', (req, res) => {
-  res.send('Welcome');
+  res.send('Welcome to api');
 });
 
 const port = process.env.PORT || config.get('port');
