@@ -1,5 +1,6 @@
 const pg = require('pg');
 const logger = require('./logger');
+require('dotenv').config();
 // pg.defaults.ssl = true;
 
 const pgconfig = {

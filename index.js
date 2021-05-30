@@ -21,6 +21,7 @@ const orders = require('./routes/orders');
 const helmet = require('helmet');
 const compression = require('compression');
 const config = require('config');
+require('dotenv').config();
 const app = express();
 
 app.use(express.static('public'));
