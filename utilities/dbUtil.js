@@ -12,6 +12,8 @@ const pgconfig = {
   idleTimeoutMillis: process.env.DB_IDLE_TIMEOUT_MS,
 };
 
+console.log(pgconfig);
+
 const pool = new pg.Pool(pgconfig);
 
 logger.info(`DB Connection Settings: ${JSON.stringify(pgconfig)}`);
