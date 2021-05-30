@@ -76,7 +76,7 @@ const getCategories = async () => {
       item_categories.icon,
       item_categories.bg_color as "backgroundColor",
       icon_pack as "iconPack"
-    FROM bilimoco.item_categories ORDER BY name`;
+    FROM bilimoco.postgres.item_categories ORDER BY name`;
   let data = [];
   let result = {};
   try {
